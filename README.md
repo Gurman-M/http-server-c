@@ -72,4 +72,4 @@ Implement keep-alive connections.
 Add MIME type detection.
 
 ## License
-This project is open source under the MIT License.
+This project is open-sourced software licensed under the MIT license.
