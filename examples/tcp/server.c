@@ -18,13 +18,15 @@
 #define MY_PORT "3490"
 #define BACKLOG 10
 
-void sigchld_handler(int s) {
+void sigchld_handler(int s)
+{
     (void)s;
 
-    //waitpid() might overwrite errno
+    // waitpid() might overwrite errno
     int saved_errno = errno;
 
-    while (waitpid(-1, NULL, WNOHANG) > 0);
+    while (waitpid(-1, NULL, WNOHANG) > 0)
+        ;
 
     errno = saved_errno;
 }
@@ -42,27 +44,32 @@ int main()
     hints.ai_flags = AI_PASSIVE;
 
     int status;
-    if ((status = getaddrinfo(NULL, MY_PORT, &hints, &res)) != 0) {
+    if ((status = getaddrinfo(NULL, MY_PORT, &hints, &res)) != 0)
+    {
         fprintf(stderr, "Error: %s\n", gai_strerror(status));
         exit(1);
     }
 
     // Loop through getaddrinfo return
-    for (p = res; p != NULL; p = p->ai_next) {
+    for (p = res; p != NULL; p = p->ai_next)
+    {
         // Try creating a socket, if it fails move on to next result
-        if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+        if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
+        {
             perror("socket");
             continue;
         }
 
         // Prevent Address already in use error message
         int yes = 1;
-        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes) == -1) {
+        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes) == -1)
+        {
             perror("setsockopt");
             exit(1);
         }
 
-        if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+        if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1)
+        {
             close(sockfd);
             perror("bind");
             continue;
@@ -74,12 +81,14 @@ int main()
     // Socket already created, don't need this anymore
     freeaddrinfo(res);
 
-    if (p == NULL) {
+    if (p == NULL)
+    {
         fprintf(stderr, "No available interface for connection\n");
         exit(1);
     }
 
-    if (listen(sockfd, BACKLOG) == -1) {
+    if (listen(sockfd, BACKLOG) == -1)
+    {
         perror("listen");
         exit(1);
     }
@@ -89,30 +98,43 @@ int main()
     sa.sa_handler = sigchld_handler;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = SA_RESTART;
-    if (sigaction(SIGCHLD, &sa, NULL) == -1) {
+    if (sigaction(SIGCHLD, &sa, NULL) == -1)
+    {
         perror("sigaction");
         exit(1);
     }
 
     printf("server: waiting for connections...\n");
 
-    while (1) {
+    while (1)
+    {
         // Listen for clients
         struct sockaddr_storage their_addr;
         socklen_t addr_size = sizeof their_addr;
-        int new_fd = accept(sockfd, (struct sockaddr *) &their_addr, &addr_size);
+        int new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &addr_size);
 
-        if (new_fd == -1) {
+        if (new_fd == -1)
+        {
             perror("accept");
             continue;
         }
 
-        if (!fork()) {
+        printf("new client!\n");
+        fflush(stdout);
+
+        if (!fork())
+        {
             close(sockfd);
             // Send message to client
-            char *message = "Once upon a time...";
+            char *message =
+                "HTTP/1.1 200 OK\r\n"
+                "Content-Type: text/plain\r\n"
+                "Content-Length: 19\r\n"
+                "\r\n"
+                "Once upon a time...";
 
-            if (send(new_fd, message, strlen(message), 0) == -1) {
+            if (send(new_fd, message, strlen(message), 0) == -1)
+            {
                 perror("send");
             }
             close(new_fd);
