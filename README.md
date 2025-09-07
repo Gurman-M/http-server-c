@@ -1,4 +1,4 @@
-# Minimal HTTP Server in C
+# Lightweight HTTP Server in C
 
 A lightweight HTTP server written in C. This server accepts requests using HTTP 1.0/1.1 and serves back an HTML file.
 This project was inspired by [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/) and demonstrates how to handle TCP connections, parse HTTP requests, and send valid responses.
